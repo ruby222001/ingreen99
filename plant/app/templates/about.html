@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}About {% endblock title %}
+{% block main-content %}
+<br>
+<br><br><br>
+<div class="container mt-3">
+    <br><h2 class="text-center">About Us</h2>
+    <br>
+    <div class="row_container">
+        <div style="float: right; margin-left: 20px;">
+            <img src="{% static 'app/image/product/s.jpg' %}" alt="Burro Image" style="width: 500px; height: 300px;">
+        </div>
+        <div>
+            <p class="fs-4 text-center">
+                At <b>Ingreen99</b>, we are passionate about bringing the beauty of nature into your home. We believe that plants have the power to transform any space, creating a serene and vibrant atmosphere. Whether you're an experienced gardener or just starting your plant journey, we're here to help you find the perfect plants to enhance your living environment.
+        
+                With years of experience in the plant industry, we have curated a diverse selection of premium-quality plants that are not only visually stunning but also thrive in a variety of indoor and outdoor settings. Our team of dedicated horticultural experts carefully handpick each plant, ensuring that they are healthy, well-rooted, and ready to thrive in their new homes.
+                
+                We understand that each plant lover has unique preferences and needs, which is why we offer a wide range of plant species, sizes, and styles. From lush tropical foliage to elegant succulents, fragrant flowers to air-purifying greenery, we have something to suit every taste and space.
+            </p>
+        </div>
+    </div>
+    <br><br>
+</div>
+{% endblock main-content %}
