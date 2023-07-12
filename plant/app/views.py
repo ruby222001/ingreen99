@@ -10,8 +10,15 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from .models import Slider
+from .models import Payment
+from django.http import HttpResponse
 
 
+import json
+@login_required
+def verify_order(request):
+    # Add your logic to verify the Khalti order
+    return HttpResponse('Order verification successful')
 @login_required
 def home(request):
      totalitem =0 
@@ -206,13 +213,7 @@ def plus_cart(request):
         cart_item.quantity += 1
         cart_item.save()
 
-        user = request.user
-        cart = Cart.objects.filter(user=user)
-        amount = 0
-        for p in cart:
-            value = p.quantity * p.product.discounted_price
-            amount += value
-        totalamount = amount + 40
+        amount, totalamount = calculate_cart_amount(request.user)
 
         data = {
             'quantity': cart_item.quantity,
@@ -220,54 +221,41 @@ def plus_cart(request):
             'totalamount': totalamount
         }
         return JsonResponse(data)
+
+from django.http import JsonResponse
 
 @login_required
 def minus_cart(request):
     if request.method == 'GET':
-        prod_id = request.GET['prod_id']
-        cart_item = Cart.objects.get(Q(product=prod_id) & Q(user=request.user))
-        if cart_item.quantity > 1:
-            cart_item.quantity -= 1
-            cart_item.save()
+        prod_id = request.GET.get('prod_id')  # Use get() method to handle missing keys gracefully
 
-        user = request.user
-        cart = Cart.objects.filter(user=user)
-        amount = 0
-        for p in cart:
-            value = p.quantity * p.product.discounted_price
-            amount += value
-        totalamount = amount + 40
+        try:
+            cart_item = Cart.objects.get(Q(product=prod_id) & Q(user=request.user))
 
-        data = {
-            'quantity': cart_item.quantity,
-            'amount': amount,
-            'totalamount': totalamount
-        }
-        return JsonResponse(data)
+            if cart_item.quantity > 1:
+                cart_item.quantity -= 1
+                cart_item.save()
 
+            amount, totalamount = calculate_cart_amount(request.user)
+
+            data = {
+                'quantity': cart_item.quantity,
+                'amount': amount,
+                'totalamount': totalamount
+            }
+            return JsonResponse(data)
+        except Cart.DoesNotExist:
+            return JsonResponse({'error': 'Cart item does not exist'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
 @login_required
 def remove_cart(request):
     if request.method == 'GET':
         prod_id = request.GET['prod_id']
-        cart_item = Cart.objects.get(Q(product=prod_id) & Q(user=request.user))
+        cart_item = Cart.objects.filter(Q(product=prod_id) & Q(user=request.user))
         cart_item.delete()
 
-        user = request.user
-        cart = Cart.objects.filter(user=user)
-        amount = 0
-        for p in cart:
-            value = p.quantity * p.product.discounted_price
-            amount += value
-        totalamount = amount + 40
-
-        data = {
-            'amount': amount,
-            'totalamount': totalamount
-        }
-        return JsonResponse(data)
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from .models import Wishlist, Cart
+        return JsonResponse({'success': True})
 
 @login_required
 def wishlist(request):
@@ -278,14 +266,14 @@ def wishlist(request):
     }
     return render(request, 'wishlist.html', context)
 
+
 @login_required
 def add_to_cart_from_wishlist(request, item_id):
     wishlist_item = Wishlist.objects.get(id=item_id)
     product = wishlist_item.product
     Cart(user=request.user, product=product).save()
     wishlist_item.delete()
-    return redirect('showcart')
-
+    return redirect('cart')
 
 
 @login_required
@@ -298,25 +286,64 @@ def search(request):
         wishitem = len(Wishlist.objects.filter(user=request.user))
     product = Product.objects.filter(title__icontains=query)
     return render(request, "search.html", {'product': product, 'wishitem': wishitem, 'totalitem': totalitem})
+
+
 @login_required
 def orders(request):
-     wishitem =0
-     totalitem =0 
-     if request.user.is_authenticated:
-               totalitem =len(Cart.objects.filter(user=request.user))
-               wishitem =len(Wishlist.objects.filter(user=request.user))
-     orderPlaced=OrderPlaced.objects.filter(user=request.user)
-     return render(request,'orders.html',locals())
+    wishitem = 0
+    totalitem = 0
+    if request.user.is_authenticated:
+        totalitem = len(Cart.objects.filter(user=request.user))
+        wishitem = len(Wishlist.objects.filter(user=request.user))
+    orderPlaced = OrderPlaced.objects.filter(user=request.user)
+    return render(request, 'orders.html', locals())
+
+
 @login_required
 def payment_done(request):
-     order_id = request.GET.get('order_id')
-     payment_id =request.GET.get('payment_id')
-     cust_id=request.GET.get('cust_id')
-     user =request.user
-     customer =Customer.objects.get(id=cust_id)
-     payment =Payment.objects.get()
-     cart= Cart.objects.filter(user=user)
-     for c in cart:
-          OrderPlaced(user=user ,customer=customer,product=c.product,quantity=c.quantity,payment=payment).save()
-          c.delete()
-     return redirect("orders")
+    order_id = request.GET.get('order_id')
+    payment_id = request.GET.get('payment_id')
+    cust_id = request.GET.get('cust_id')
+    user = request.user
+    customer = Customer.objects.get(id=cust_id)
+    cart = Cart.objects.filter(user=user)
+    amount = 1000  # Update the amount as needed
+    url = "https://khalti.com/api/v2/payment/verify/"
+    return redirect("orders")
+
+
+@login_required
+def verify_payment(request):
+   data = request.POST
+   product_id = data['product_identity']
+   token = data['token']
+   amount = data['amount']
+
+   url = "https://khalti.com/api/v2/payment/verify/"
+   payload = {
+   "token": token,
+   "amount": amount
+   }
+   headers = {
+   "Authorization": "Key test_secret_key_614eec0ede624202b701d4fc638ec86c"
+   }
+   
+
+   response = requests.post(url, payload, headers = headers)
+   
+   response_data = json.loads(response.text)
+   status_code = str(response.status_code)
+
+   if status_code == '400':
+      response = JsonResponse({'status':'false','message':response_data['detail']}, status=500)
+      return response
+
+   import pprint 
+   pp = pprint.PrettyPrinter(indent=4)
+   pp.pprint(response_data)
+   
+   return JsonResponse(f"Payment Done !! With IDX. {response_data['user']['idx']}",safe=False)
+
+
+   
+

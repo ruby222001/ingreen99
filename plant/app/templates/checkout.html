@@ -1,55 +1,111 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Address
-{% endblock title %}
-{% block main-content %}
 
-<div class="container ">
+{% block title %}Address{% endblock title %}
+
+{% block main-content %}
+<div class="container">
     {% if messages %}
-    <div class="alert alert-danger" role ="alert">
-        {{msg}}
+    <div class="alert alert-danger" role="alert">
+        {{ messages }}
     </div>
-  
-   {% endif %}
-   <div class="row mt-4">
-    <div class="col-sm-6">
-        <h4>Order Summary</h4>
-        <hr>
-        {% for item in cart_items %}
-<div class="card mb-2">
-    <div class="card-body">
-        <h5>Product: {{item.product.title}}</h5>
-        <p>Quantity: {{item.quantity}}</p>
-        <p class ="fw-bold">Price:{{items.product.discounted_price}}</p>
-    </div>
-</div>
-{% endfor %}
-<p class="fw-bold">Total Cost +Rs.40={{totalamount}}</p>
-    </div>
-    <div class="col-sm-4 offset-sm-1">
-        <h4>Select Shipping Address</h4>
-        <hr>
-        <form method="post" id ="myform">
-            {% csrf_token %}{% for ad in add %}
-            <div class="card">
+    {% endif %}
+    <div class="row mt-4">
+        <div class="col-sm-6">
+            <h4>Order Summary</h4>
+            <hr>
+            {% for item in cart_items %}
+            <div class="card mb-2">
                 <div class="card-body">
-                    <p>Mobile :{{ad.mobile}}</p>
-                  
+                    <h5>Product: {{ item.product.title }}</h5>
+                    <p>Quantity: {{ item.quantity }}</p>
+                    <p class="fw-bold">Price: {{ item.product.discounted_price }}</p>
                 </div>
             </div>
-            <div class="form-check mt-2 mb-5">
-                <input type="radio" name="custid" class="form-check-input" id ="custadd{{forloop.counter}}" value ="{{ad.id}}">
-            <label for="custadd{{forloop.counter}}" class="form-check-label fw-bold">Address:{{forloop.counter}}</label>
-            </div>
-            {% endfor %} 
-            <div class="form-check mb-3">
-                <label for="totalamount" class="form-label">Total Amount</label>
-                <input type="number" class="form-control"name ="totalamount" value ={{totalamount}} readonly>
-            </div>
-            <div class="text-end">
-<button  type ="submit" class="btn btn-warning mt-3 px-5 fw-bold">payment</button>        </div>
-        </form>
+            {% endfor %}
+            <p class="fw-bold">Total Cost +Rs.40 = {{ totalamount }}</p>
+        </div>
+        <div class="col-sm-4 offset-sm-1">
+            <h4>Select Shipping Address</h4>
+            <hr>
+            <form method="post" id="myform">
+                {% csrf_token %}
+                {% for ad in add %}
+                <div class="card">
+                    <div class="card-body">
+                        <p>Mobile: {{ ad.mobile }}</p>
+                    </div>
+                </div>
+                <div class="form-check mt-2 mb-5">
+                    <input type="radio" name="custid" class="form-check-input" id="custadd{{ forloop.counter }}"
+                        value="{{ ad.id }}">
+                    <label for="custadd{{ forloop.counter }}" class="form-check-label fw-bold">Address:{{ forloop.counter }}</label>
+                </div>
+                {% endfor %}
+                <div class="form-check mb-3">
+                    <label for="totalamount" class="form-label">Total Amount</label>
+                    <input type="number" class="form-control" name="totalamount" value="{{ totalamount }}" readonly>
+                </div>
+                <div class="col-sm-12 col-md-6 text-right">
+                    <button type="submit" id="payment-button" name="action" value="checkout">Pay with Khalti</button>
+                </div>
+            </form>
+        </div>
     </div>
-   </div>
 </div>
-{% endblock main-content %} 
+{% endblock main-content %}
+
+{% block payment-gateway %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://khalti.s3.ap-south-1.amazonaws.com/KPG/dist/2020.12.17.0.0.0/khalti-checkout.iffe.js"></script>
+<script>
+    function verifyPayment(payload) {
+        $.ajax({
+            url: "{% url 'verify_payment' %}",
+            method: "POST",
+            dataType: 'json',
+            data: payload,
+            success: function (response) {
+                alert(response);
+            },
+            error: function (error) {
+                alert(error.responseJSON['message']);
+            }
+        });
+    }
+
+    var config = {
+        // Replace the publicKey with yours
+        "publicKey": "test_public_key_f66150ba2f6c4fc7badd7a1ce544983d",
+        "productIdentity": "1234567890",
+        "productName": "Dragon",
+        "productUrl": "http://gameofthrones.wikia.com/wiki/Dragons",
+        "paymentPreference": [
+            "KHALTI",
+            "EBANKING",
+            "MOBILE_BANKING",
+            "CONNECT_IPS",
+            "SCT"
+        ],
+        "eventHandler": {
+            onSuccess(payload) {
+                // Hit merchant API for initiating verification
+                verifyPayment(payload);
+            },
+            onError(error) {
+                console.log(error);
+            },
+            onClose() {
+                console.log('Widget is closing');
+            }
+        }
+    };
+
+    var checkout = new KhaltiCheckout(config);
+    var btn = document.getElementById("payment-button");
+    btn.onclick = function () {
+        // Minimum transaction amount must be 10, i.e., 1000 in paisa.
+        checkout.show({ amount: 1000 });
+    };
+</script>
+{% endblock payment-gateway %}
