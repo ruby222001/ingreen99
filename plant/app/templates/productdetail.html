@@ -4,10 +4,17 @@
 {% block main-content %}
 <div class="container  mt-5">
     <div class="row justify-content-between">
+        <div class="col-sm-2">
+            <div class="list-group">
+               {% for val in title %}
+               <a href="{% url 'category-title' val.title %}"  style="box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19); "class="list-group-item list-group-item-action" aria-current="true">{{val.title}}</a>
+               {% endfor %}
+            </div>
+         </div>
         <div class="col-lg-5 mt-5">
-            <img src="{{product.product_image.url}}" class="image img-fluid mx-auto d-block mt-3" style="max-width: 300px; height: auto;" alt="">
+            <img src="{{product.product_image.url}}" class="image img-fluid mx-auto d-block mt-3" style="max-width: 300px; height: auto; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);  width: 250px;" alt="">
         </div>
-        <div class="col-lg-5 my-5">
+        <div class="col-lg-5 my-5" >
             <h1 class="my-4" style="font-family: Georgia; font-size: 40px;">{{product.title}}</h1>
             <h5>Rs.{{product.discounted_price}}/-</h5>
             <small class="text-muted fs-5" style="text-decoration: line-through;">Rs.{{product.selling_price}}</small>

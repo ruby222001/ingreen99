@@ -4,27 +4,24 @@
 {% block main-content %}
 <div class="container my-5 pt-4">
    <div class="row">
-      <div class="col-sm-3">
-         <div class="list-group">
-            {% for val in title %}
-            <a href="{% url 'category-title' val.title %}" class="list-group-item list-group-item-action" aria-current="true">{{val.title}}</a>
-            {% endfor %}
-         </div>
-      </div>
+      
       <div class="col-sm-9">
          <div class="row">
             {% for prod in product %}
-            <div class="col-md-4 mb-4"> <!-- Added col-md-4 to display 3 items per row -->
-               <a href="{% url 'product-detail' prod.id %}" class="btn">
-                  <div>
-                     <img src="{{prod.product_image.url}}" style="max-width: 100%; height: auto;" />
-                     <div class="fw-bold">{{prod.title}}</div>
-                     <div class="fw-bold text-danger">
+            <div class="col-md-4 mb-4">
+               <div class="card">
+                  <a href="{% url 'product-detail' prod.id %}">
+                     <img src="{{prod.product_image.url}}" class="card-img-top" alt="{{prod.title}}" style="max-height: 200px; object-fit: cover;">
+                  </a>
+                  <div class="card-body">
+                     <h5 class="card-title">{{prod.title}}</h5>
+                     <p class="card-text">
                         Rs.{{prod.discounted_price}}/-
-                        <small class="fw-light text-decoration-line-through">{{prod.selling_price}}</small>
-                     </div>
+                        <br>
+                        <small class="text-decoration-line-through">Rs.{{prod.selling_price}}</small>
+                     </p>
                   </div>
-               </a>
+               </div>
             </div>
             {% if forloop.counter|divisibleby:3 %} <!-- Add clearfix after every 3 items -->
             <div class="clearfix"></div>
@@ -34,4 +31,5 @@
       </div>
    </div>
 </div>
+
 {% endblock main-content %}
