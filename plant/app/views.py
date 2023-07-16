@@ -194,16 +194,17 @@ class checkoutView(View):
      totalitem =0 
      if request.user.is_authenticated:
                totalitem =len(Cart.objects.filter(user=request.user))
-               wishitem =len(Wishlist.objects.filter(user=request.user))  
-     user =request.user
-     add=Customer.objects.filter(user=user)
-     cart =Cart.objects.filter(user=user)
-     famount =0
-     for p in cart:
-          value =p.quantity* p.product.discounted_price
-          famount =famount+value
-     totalamount =famount+40
-     return render(request,'checkout.html',locals())
+               wishitem =len(Wishlist.objects.filter(user=request.user))
+               user =request.user
+               add=Customer.objects.filter(user=user)
+               cart_items =Cart.objects.filter(user=user)
+               famount =0
+               for p in cart_items:
+                value =p.quantity* p.product.discounted_price
+                famount =famount+value
+                totalamount =famount+40
+                return render(request,'checkout.html',locals())  
+     
 
 @login_required
 def plus_cart(request):
