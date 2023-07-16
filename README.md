@@ -7,3 +7,6 @@ single product detail
 add_to_cart details
 
 ![image](https://github.com/ruby222001/ingreen99/assets/113155583/37ce6966-fc61-4726-b9d9-d035687d57e2)
+
+plus button
+![image](https://github.com/ruby222001/ingreen99/assets/113155583/587c659e-d677-41bf-b2d0-4b32ef4741c7)
