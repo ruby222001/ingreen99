@@ -11,14 +11,11 @@ CATEGORY_CHOICES=(
     ('FT','fertilizer'),
 )
 # Create your models here.
-
 class Slider(models.Model):
+    image = models.ImageField(upload_to='slider_images')
     title = models.CharField(max_length=100)
-    image = models.ImageField(upload_to='slider')
-    description = models.TextField()
+    details = models.TextField()
 
-    def __str__(self):
-        return self.title
 class Product(models.Model):
     title =models.CharField(max_length=100)
     selling_price =models.FloatField()

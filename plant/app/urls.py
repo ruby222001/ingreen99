@@ -1,42 +1,36 @@
 from django.urls import path
 from . import views
-
 from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_view
 from .forms import LoginForm,MyPasswordResetForm
 urlpatterns = [
-    path("", views.home),
+    path("", views.home,name='home'),
     path("category/<slug:val>", views.CategoryView.as_view(), name="category"),
-    path("product-detail/<int:pk>",
-         views.ProductDetail.as_view(), name="product-detail"),
+    path("product-detail/<int:pk>",views.ProductDetail.as_view(), name="product-detail"),
     path('about/', views.about, name="about"),
     path('contact/', views.contact, name="contact"),
     path("category.title/<val>",views.CategoryTitle.as_view(),name="category-title"),
     path('profile/',views.ProfileView.as_view(),name='profile'),
+    
     path('address/',views.address,name='address'),
     path('add-to-cart/',views.add_to_cart,name='add-to-cart'),
     path('showcart/',views.show_cart,name='showcart'),
 
-    path('showcart/pluscart/', views.plus_cart, name='plus-cart'),
-    path('showcart/minuscart/', views.minus_cart, name='minus-cart'),
-    path('showcart/removecart/', views.remove_cart, name='remove-cart'),
-       path('cart/', views.show_cart, name='cart'),
+    path('pluscart/', views.plus_cart),
+    path('minuscart/', views.minus_cart),
+path('removecart/', views.remove_cart, name='remove-cart'),
+    path('cart/', views.show_cart, name='cart'),
     path('add-to-cart-from-wishlist/<int:item_id>/', views.add_to_cart_from_wishlist, name='add-to-cart-from-wishlist'),
-
+ 
  path('payment_done/',views.payment_done,name='verify_payment'),
 path('checkout/', views.checkoutView.as_view(), name='checkout'),
-
-        path('ajax/khalti/verify_order/', views.verify_order, name='ajax.khalti.verify_order'),
-
-    path('wishlist/', views.wishlist, name='wishlist'),
-
+ path('ajax/khalti/verify_order/', views.verify_order, name='ajax.khalti.verify_order'),
+path('wishlist/', views.wishlist, name='wishlist'),
 path('api/verify_payment',views.verify_payment,name='verify_payment'),
- 
     path('search/',views.search,name='search'),
     path('orders/',views.home,name='orders'),
-
     path('paymentdone/',views.payment_done,name='paymentdone'),
 path('updateaddress/<int:pk>',views.updateAddress.as_view(),name='updateaddress'),
     path('registration/',views.CustomerRegistrationview.as_view(),name='customerregistration'),

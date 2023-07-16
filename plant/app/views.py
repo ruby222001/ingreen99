@@ -9,11 +9,9 @@ from django.db.models import Q
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from .models import Slider
 from .models import Payment
 from django.http import HttpResponse
-
-
+from .models import Slider
 import json
 @login_required
 def verify_order(request):
@@ -21,12 +19,14 @@ def verify_order(request):
     return HttpResponse('Order verification successful')
 @login_required
 def home(request):
-     totalitem =0 
-     wishitem =0
-     if request.user.is_authenticated:
+    sliders = Slider.objects.all()
+
+    totalitem =0 
+    wishitem =0
+    if request.user.is_authenticated:
                totalitem =len(Cart.objects.filter(user=request.user))
                wishitem =len(Wishlist.objects.filter(user=request.user))
-     return render(request,'home.html')
+    return render(request,'home.html',{'sliders': sliders})
    
 @login_required
 def about(request):
@@ -208,55 +208,68 @@ class checkoutView(View):
 @login_required
 def plus_cart(request):
     if request.method == 'GET':
-        prod_id = request.GET['prod_id']
-        cart_item = Cart.objects.get(Q(product=prod_id) & Q(user=request.user))
-        cart_item.quantity += 1
-        cart_item.save()
+        prod_id = request.GET.get('prod_id')
+        c = Cart.objects.get(Q(product=prod_id) & Q(user=request.user))
+        c.quantity += 1
+        c.save()
 
-        amount, totalamount = calculate_cart_amount(request.user)
+        cart = Cart.objects.filter(user=request.user)
+        amount = sum(item.quantity * item.product.discounted_price for item in cart)
+
+        total_amount = amount + 40
 
         data = {
-            'quantity': cart_item.quantity,
+            'quantity': c.quantity,
             'amount': amount,
-            'totalamount': totalamount
+            'totalamount': total_amount
         }
+
         return JsonResponse(data)
 
-from django.http import JsonResponse
+
 
 @login_required
 def minus_cart(request):
     if request.method == 'GET':
-        prod_id = request.GET.get('prod_id')  # Use get() method to handle missing keys gracefully
+         prod_id = request.GET.get('prod_id') # Use get() method instead of indexing
+    c = Cart.objects.get(Q(product=prod_id) & Q(user=request.user))
+    c.quantity -= 1
+    c.save()
+    user = request.user
+    cart =Cart.objects.filter(user=user)
+    amount =0
+    for p in cart:
+         value = p.quantity*p.product.discounted_price
+         amount =amount+value
 
-        try:
-            cart_item = Cart.objects.get(Q(product=prod_id) & Q(user=request.user))
+    totalamount =amount+40
 
-            if cart_item.quantity > 1:
-                cart_item.quantity -= 1
-                cart_item.save()
-
-            amount, totalamount = calculate_cart_amount(request.user)
-
-            data = {
-                'quantity': cart_item.quantity,
-                'amount': amount,
-                'totalamount': totalamount
-            }
-            return JsonResponse(data)
-        except Cart.DoesNotExist:
-            return JsonResponse({'error': 'Cart item does not exist'})
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
+    data = {
+      'quantity': c.quantity,
+      'amount': amount,
+      'totalamount': totalamount
+    }
+    return JsonResponse(data) 
+    
 @login_required
 def remove_cart(request):
     if request.method == 'GET':
-        prod_id = request.GET['prod_id']
-        cart_item = Cart.objects.filter(Q(product=prod_id) & Q(user=request.user))
-        cart_item.delete()
+        prod_id = request.GET.get('prod_id')
+        cart_item = Cart.objects.filter(Q(product=prod_id) & Q(user=request.user)).first()
+        if cart_item:
+            cart_item.delete()
 
-        return JsonResponse({'success': True})
+        user = request.user
+        cart = Cart.objects.filter(user=user)
+        amount = sum(item.quantity * item.product.discounted_price for item in cart)
+        total_amount = amount + 40
 
+        data = {
+            'amount': amount,
+            'totalamount': total_amount
+        }
+
+        return JsonResponse(data)
 @login_required
 def wishlist(request):
     user = request.user
