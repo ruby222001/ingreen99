@@ -39,7 +39,7 @@ path('updateaddress/<int:pk>',views.updateAddress.as_view(),name='updateaddress'
     path('password-reset/',auth_view.PasswordResetView.as_view(template_name='password_reset.html',form_class =MyPasswordResetForm),name='password_reset'),
    path('passwordchangedone/' ,auth_view.PasswordChangeDoneView.as_view(template_name='app/passwordchangedone.html'),name='passwordchangedone'),
     path('logout/',auth_view.LogoutView.as_view(next_page='login'),name='logout'),
-]+static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 admin.site.site_header="ingreen"
 admin.site.site_title="ingreen"
 admin.site.site_index_title="Welcome to ingreen"

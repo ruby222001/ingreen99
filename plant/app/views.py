@@ -13,6 +13,7 @@ from .models import Payment
 from django.http import HttpResponse
 from .models import Slider
 import json
+import requests
 @login_required
 def verify_order(request):
     # Add your logic to verify the Khalti order
@@ -322,42 +323,31 @@ def payment_done(request):
     customer = Customer.objects.get(id=cust_id)
     cart = Cart.objects.filter(user=user)
     amount = 1000  # Update the amount as needed
-    url = "https://khalti.com/api/v2/payment/verify/"
     return redirect("orders")
 
 
 @login_required
 def verify_payment(request):
-   data = request.POST
-   product_id = data['product_identity']
-   token = data['token']
-   amount = data['amount']
+    data = request.POST
+    product_id = data['product_identity']
+    token = data['token']
+    amount = data['amount']
 
-   url = "https://khalti.com/api/v2/payment/verify/"
-   payload = {
-   "token": token,
-   "amount": amount
-   }
-   headers = {
-   "Authorization": "Key test_secret_key_614eec0ede624202b701d4fc638ec86c"
-   }
-   
+    url = "https://khalti.com/api/v2/payment/verify/"
+    payload = {
+        "token": token,
+        "amount": amount
+    }
+    headers = {
+        "Authorization": "Key test_secret_key_614eec0ede624202b701d4fc638ec86c"
+    }
 
-   response = requests.post(url, payload, headers = headers)
-   
-   response_data = json.loads(response.text)
-   status_code = str(response.status_code)
+    response = requests.post(url, data=payload, headers=headers)
+    response_data = json.loads(response.text)
+    status_code = str(response.status_code)
 
-   if status_code == '400':
-      response = JsonResponse({'status':'false','message':response_data['detail']}, status=500)
-      return response
+    if status_code == '400':
+        response = JsonResponse({'status': 'false', 'message': response_data['detail']}, status=500)
+        return response
 
-   import pprint 
-   pp = pprint.PrettyPrinter(indent=4)
-   pp.pprint(response_data)
-   
-   return JsonResponse(f"Payment Done !! With IDX. {response_data['user']['idx']}",safe=False)
-
-
-   
-
+    return JsonResponse(f"Payment Done !! With IDX. {response_data['user']['idx']}", safe=False)
