@@ -1,23 +1,18 @@
-from django.db.models import Count
 from django.http import JsonResponse
-from django.shortcuts import render,redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.views import View
-from .models import Product,Customer,Cart,OrderPlaced,Payment,Wishlist
-from .forms import CustomerRegistrationForm,CustomerProfileForm
+from .forms import CustomerRegistrationForm, CustomerProfileForm, ReviewForm
 from django.contrib import messages
 from django.db.models import Q
-from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from .models import Payment
 from django.http import HttpResponse
-from .models import Slider
-import json
+from .models import ReviewRating, Slider, Product, Customer, Cart, OrderPlaced,Wishlist
 import requests
-@login_required
-def verify_order(request):
-    # Add your logic to verify the Khalti order
-    return HttpResponse('Order verification successful')
+from django.views.decorators.csrf import csrf_exempt
+
+
+
 @login_required
 def home(request):
     sliders = Slider.objects.all()
@@ -70,18 +65,33 @@ class CategoryTitle(View ):
                wishitem =len(Wishlist.objects.filter(user=request.user))
         return render(request,"category.html",locals())
     
-@method_decorator(login_required,name='dispatch')
+@method_decorator(login_required, name='dispatch')
 class ProductDetail(View):
-     def get(self,request,pk):
-          product=Product.objects.get(pk=pk)
-          wishlist = Wishlist.objects.filter(Q(product=product)&Q(user=request.user))
-          wishitem =0
-          totalitem =0 
-          if request.user.is_authenticated:
-               totalitem =len(Cart.objects.filter(user=request.user))
-               wishitem =len(Wishlist.objects.filter(user=request.user))
-          return render(request,"productdetail.html",locals())
-     
+    template_name = 'productdetail.html'
+
+    def get(self, request, pk):
+        product = get_object_or_404(Product, pk=pk)
+        wishlist = Wishlist.objects.filter(user=request.user, product=product).exists()
+        
+        wishitem = 0
+        totalitem = 0
+
+        if request.user.is_authenticated:
+            totalitem = len(Cart.objects.filter(user=request.user))
+            wishitem = len(Wishlist.objects.filter(user=request.user))
+
+        # Fetch reviews for the product
+        reviews = ReviewRating.objects.filter(product=product)  # Use the correct field name
+
+        context = {
+            'product': product,
+            'wishlist': wishlist,
+            'totalitem': totalitem,
+            'wishitem': wishitem,
+            'reviews': reviews,
+        }
+
+        return render(request, "productdetail.html", context)
 @method_decorator(login_required,name='dispatch')
 class CustomerRegistrationview(View):
      def get(self,request):
@@ -189,24 +199,24 @@ def show_cart(request):
     return render(request, 'addtocart.html', locals())
 
 @method_decorator(login_required,name='dispatch')
-class checkoutView(View):
-    def get(self,request):
-     wishitem =0
-     totalitem =0 
-     if request.user.is_authenticated:
-               totalitem =len(Cart.objects.filter(user=request.user))
-               wishitem =len(Wishlist.objects.filter(user=request.user))
-               user =request.user
-               add=Customer.objects.filter(user=user)
-               cart_items =Cart.objects.filter(user=user)
-               famount =0
-               for p in cart_items:
-                value =p.quantity* p.product.discounted_price
-                famount =famount+value
-                totalamount =famount+40
-                return render(request,'checkout.html',locals())  
-     
+class CheckoutView(View):
+    def get(self, request):
+        wishitem = 0
+        totalitem = 0 
+        if request.user.is_authenticated:
+            totalitem = len(Cart.objects.filter(user=request.user))
+            wishitem = len(Wishlist.objects.filter(user=request.user))
+            user = request.user
+            add = Customer.objects.filter(user=user)
+            cart_items = Cart.objects.filter(user=user)
+            famount = 0
+            for p in cart_items:
+                value = p.quantity * p.product.discounted_price
+                famount += value
+            totalamount = famount + 40
+            return render(request, 'checkout.html', locals())
 
+    
 @login_required
 def plus_cart(request):
     if request.method == 'GET':
@@ -272,15 +282,15 @@ def remove_cart(request):
         }
 
         return JsonResponse(data)
-@login_required
-def wishlist(request):
-    user = request.user
-    wishlist_items = Wishlist.objects.filter(user=user)
-    context = {
-        'wishlist_items': wishlist_items,
-    }
-    return render(request, 'wishlist.html', context)
+def add_to_wishlist(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    wishlist_item, created = Wishlist.objects.get_or_create(user=request.user, product=product)
+    return HttpResponse('{"success": true}', content_type='application/json')
 
+def remove_from_wishlist(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    Wishlist.objects.filter(user=request.user, product=product).delete()
+    return HttpResponse('{"success": true}', content_type='application/json')
 
 @login_required
 def add_to_cart_from_wishlist(request, item_id):
@@ -313,41 +323,52 @@ def orders(request):
     orderPlaced = OrderPlaced.objects.filter(user=request.user)
     return render(request, 'orders.html', locals())
 
-
-@login_required
-def payment_done(request):
-    order_id = request.GET.get('order_id')
-    payment_id = request.GET.get('payment_id')
-    cust_id = request.GET.get('cust_id')
-    user = request.user
-    customer = Customer.objects.get(id=cust_id)
-    cart = Cart.objects.filter(user=user)
-    amount = 1000  # Update the amount as needed
-    return redirect("orders")
-
-
-@login_required
+@csrf_exempt
 def verify_payment(request):
-    data = request.POST
-    product_id = data['product_identity']
-    token = data['token']
-    amount = data['amount']
+    try:
+        if request.method == 'POST':
+          data = request.POST
+          product_id = data.get('product_identity')
+          token = data.get('token')
+          amount = data.get('amount')
 
-    url = "https://khalti.com/api/v2/payment/verify/"
-    payload = {
-        "token": token,
-        "amount": amount
-    }
-    headers = {
-        "Authorization": "Key test_secret_key_614eec0ede624202b701d4fc638ec86c"
-    }
+          url = "https://khalti.com/api/v2/payment/verify/"
+          verify_payload = {
+            "token": token,
+            "amount": amount,
+        }
 
-    response = requests.post(url, data=payload, headers=headers)
-    response_data = json.loads(response.text)
-    status_code = str(response.status_code)
+          headers = {
+            "Authorization": "Key test_secret_key_5e4c4d2114a54d119fbb859d4086947b"
+        }
 
-    if status_code == '400':
-        response = JsonResponse({'status': 'false', 'message': response_data['detail']}, status=500)
-        return response
+        response = requests.post(url, json=verify_payload, headers=headers)
+        response_data = response.json()
 
-    return JsonResponse(f"Payment Done !! With IDX. {response_data['user']['idx']}", safe=False)
+        if response.status_code == 200:
+            return JsonResponse({'status': 'success', 'message': 'Payment verified', 'data': response_data})
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Payment verification failed', 'data': response_data}, status=500)
+
+    
+    except Exception as e:
+        print(f"Exception: {e}") 
+        return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
+def submit_review(request, product_id):
+    url = request.META.get('HTTP_REFERER')
+    if request.method == 'POST':
+        try:
+            review = ReviewRating.objects.get(user=request.user, product_id=product_id)
+            form = ReviewForm(request.POST, instance=review)
+        except ReviewRating.DoesNotExist:
+            form = ReviewForm(request.POST)
+
+        if form.is_valid():
+            data = form.save(commit=False)
+            data.user = request.user
+            data.product_id = product_id
+            data.ip = request.META.get('REMOTE_ADDR')  # Fix the typo here
+            data.save()
+            messages.success(request, 'Thank you for your review')
+            return redirect(url)
+

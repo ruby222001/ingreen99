@@ -46,66 +46,70 @@
                     <label for="totalamount" class="form-label">Total Amount</label>
                     <input type="number" class="form-control" name="totalamount" value="{{ totalamount }}" readonly>
                 </div>
-                <div class="col-sm-12 col-md-6 text-right">
-                    <button type="submit" id="payment-button" name="action" value="checkout">Pay with Khalti</button>
-                </div>
+                    <button id="payment-button">Pay with Khalti</button>
+                
             </form>
+            <script>
+                function verifyPayment(payload) {
+        $.ajax({
+            url: "{% url 'verify_payment' %}",
+            type: "POST",
+            data: payload,
+            dataType: 'json',
+            success: function (response) {
+    if (response.status === 'true') {
+        alert(response.message);
+        // Handle success case here
+    } else {
+        alert(response.message);
+        // Handle failure case here
+    }
+},        });
+    }
+
+                document.addEventListener("DOMContentLoaded", function () {
+             
+                    var config = {
+                        "publicKey": "test_public_key_f359d2bd4ccc4bc2ad77916a0eba7199",
+                        "productIdentity": "1234567890",
+                        "productName": "TravelNest",
+                        "productUrl": "http://127.0.0.1:8000/",
+                        "paymentPreference": [
+                            "KHALTI",
+                           
+                        ],
+                        "eventHandler": {
+                            onSuccess: function (payload) {
+                                console.log(payload);
+                verifyPayment(payload);
+                
+            },
+                                    
+                            
+                            onError: function (error) {
+                                console.log(error);
+                            },
+                            onClose: function () {
+                                console.log('widget is closing');
+                            }
+                        }
+                    };
+        
+                    var checkout = new KhaltiCheckout(config);
+                    var btn = document.getElementById("payment-button");
+                    btn.onclick = function () {
+                        checkout.show({ amount: 1000 });
+                    };
+                });
+            </script>
+           
+        </div>
+        
+       
+       
+           
         </div>
     </div>
 </div>
 {% endblock main-content %}
 
-{% block payment-gateway %}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://khalti.s3.ap-south-1.amazonaws.com/KPG/dist/2020.12.17.0.0.0/khalti-checkout.iffe.js"></script>
-<script>
-    function verifyPayment(payload) {
-        $.ajax({
-            url: "{% url 'verify_payment' %}",
-            method: "POST",
-            dataType: 'json',
-            data: payload,
-            success: function (response) {
-                alert(response);
-            },
-            error: function (error) {
-                alert(error.responseJSON['message']);
-            }
-        });
-    }
-
-    var config = {
-        // Replace the publicKey with yours
-        "publicKey": "test_public_key_f66150ba2f6c4fc7badd7a1ce544983d",
-        "productIdentity": "1234567890",
-        "productName": "Dragon",
-        "productUrl": "http://gameofthrones.wikia.com/wiki/Dragons",
-        "paymentPreference": [
-            "KHALTI",
-            "EBANKING",
-            "MOBILE_BANKING",
-            "CONNECT_IPS",
-            "SCT"
-        ],
-        "eventHandler": {
-            onSuccess(payload) {
-                // Hit merchant API for initiating verification
-                verifyPayment(payload);
-            },
-            onError(error) {
-                console.log(error);
-            },
-            onClose() {
-                console.log('Widget is closing');
-            }
-        }
-    };
-
-    var checkout = new KhaltiCheckout(config);
-    var btn = document.getElementById("payment-button");
-    btn.onclick = function () {
-        // Minimum transaction amount must be 10, i.e., 1000 in paisa.
-        checkout.show({ amount: 1000 });
-    };
-</script>
-{% endblock payment-gateway %}

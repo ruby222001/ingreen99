@@ -1,7 +1,9 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm,AuthenticationForm,UsernameField,PasswordResetForm,PasswordChangeForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, UsernameField, PasswordResetForm, PasswordChangeForm
 from django.contrib.auth.models import User
-from .models import Customer
+from .models import Customer, ReviewRating
+
+
 class LoginForm(AuthenticationForm):
    username=UsernameField(widget=forms.TextInput(attrs={'autofocus': 'True',
                                                              'class': 'form-control'}))
@@ -15,7 +17,7 @@ class CustomerRegistrationForm(UserCreationForm):
     password2 = forms.CharField(label='Confirm password', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
 
     class Meta:
-      model =User
+      model =Customer
       fields =UserCreationFormfiels =['username','email','password1','password2']
 class MyPasswordResetForm(PasswordResetForm):
     pass
@@ -36,3 +38,7 @@ class CustomerProfileForm(forms.ModelForm):
 class MyPasswordResetForm(PasswordResetForm):
     new_password1 =forms.CharField(label='New Password',widget = forms.PasswordInput(attrs={'autocomplete':'current-password','class':'form-control'}))
     new_password2 =forms.CharField(label='Confirm Password',widget = forms.PasswordInput(attrs={'autocomplete':'current-password','class':'form-control'}))
+class ReviewForm(forms.ModelForm):
+    class Meta:
+        model = ReviewRating  # Replace with your actual Review model
+        fields = ['review', 'rating']  # Add other fields as needed

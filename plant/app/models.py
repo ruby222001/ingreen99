@@ -1,5 +1,8 @@
-from django.db import models
 from django.contrib.auth.models import User
+from django.db import models
+
+
+
 CATEGORY_CHOICES=(
     ('IP','indoorplant'),
     ('OP','outdoorplant'),
@@ -15,6 +18,7 @@ class Slider(models.Model):
     image = models.ImageField(upload_to='slider_images')
     title = models.CharField(max_length=100)
     details = models.TextField()
+
 
 class Product(models.Model):
     title =models.CharField(max_length=100)
@@ -41,6 +45,20 @@ STATUS_CHOICES=(
     ('Cancel','Cancel'),
     ('Pending','Pending'),
 )
+class ReviewRating(models.Model):
+    user =models.ForeignKey(User,on_delete=models.CASCADE)
+    product= models.ForeignKey(Product,on_delete=models.CASCADE)
+    review = models.TextField(max_length=500,blank=True)
+    rating = models.FloatField()
+    subject = models.CharField(max_length=100, blank=True)
+    ip = models.CharField(max_length=20, blank=True)
+
+    status =models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return f'{self.user.username} - {self.product.title}'
+
 
 class Cart(models.Model):
     user =models.ForeignKey(User,on_delete=models.CASCADE)
@@ -62,10 +80,11 @@ class OrderPlaced(models.Model):
     ordered_data=models.DateTimeField(auto_now_add=True)
     status =models.CharField(max_length=50,choices=STATUS_CHOICES,default='Pending')
     payment =models.ForeignKey(Payment,on_delete=models.CASCADE,default="")
-    @property
-    def total_cost(self):
-      return self.quantity* self.product.discounted_price
-class Wishlist(models.Model):
-    user =models.ForeignKey(User,on_delete=models.CASCADE)
-    product =models.ForeignKey(Product,on_delete=models.CASCADE)
+   
 
+class Wishlist(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)  # Assuming you have a Product model
+
+    def __str__(self):
+        return f"{self.user.username}'s Wishlist"
