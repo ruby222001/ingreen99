@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
+<script src="{% static 'app/js/myscript.js' %}"></script>
+
 {% block title %}Cart
 {% endblock title %}
 {% block main-content %}
@@ -76,5 +78,33 @@
             {% endif %}
         </div>
     </div>
-
+    <script>
+        $(document).ready(function() {
+            $('.add-to-cart').click(function() {
+                var id = $(this).attr("pid").toString();
+                var quantityElement = $(this).siblings('.quantity');
+                console.log("pid =", id);
+                $.ajax({
+                    type: "GET",
+                    url: "/add-to-cart/",
+                    data: {
+                        prod_id: id
+                    },
+                    success: function(data) {
+                        console.log("data=", data);
+                        quantityElement.text(data.quantity);
+                        $('#amount').text(data.amount);
+                        $('#totalamount').text(data.totalamount);
+        
+                        // Check if the item is already in the cart
+                        if (data.alreadyInCart) {
+                            alert("This item is already in your cart.");
+                        }
+                    }
+                });
+            });
+        
+            // Add other event handlers as needed
+        });
+        </script>
 {% endblock main-content %}

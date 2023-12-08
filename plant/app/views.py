@@ -177,10 +177,19 @@ def add_to_cart(request):
     user = request.user
     product_id = request.GET.get('prod_id')
     product = Product.objects.get(id=product_id)
-    Cart(user=user, product=product).save()
+
+    # Check if the product is already in the cart
+    existing_cart_item = Cart.objects.filter(user=user, product=product)
+    if existing_cart_item.exists():
+        messages.warning(request, "This item is already in your cart.")
+    else:
+        Cart(user=user, product=product).save()
+        messages.success(request, "Item added to cart successfully.")
+
     if 'next' in request.GET:
         return redirect(request.GET.get('next'))
     return redirect('showcart')
+
 
 @login_required
 def show_cart(request):
@@ -216,6 +225,7 @@ class CheckoutView(View):
                 famount += value
             totalamount = famount + 40
             return render(request, 'checkout.html', locals())
+
 @login_required
 def plus_cart(request):
     if request.method == 'GET':
@@ -240,62 +250,35 @@ def plus_cart(request):
 @login_required
 def minus_cart(request):
     if request.method == 'GET':
-         prod_id = request.GET.get('prod_id') # Use get() method instead of indexing
-    c = Cart.objects.get(Q(product=prod_id) & Q(user=request.user))
-    c.quantity -= 1
-    c.save()
-    user = request.user
-    cart =Cart.objects.filter(user=user)
-    amount =0
-    for p in cart:
-         value = p.quantity*p.product.discounted_price
-         amount =amount+value
+        prod_id = request.GET.get('prod_id')  # Use get() method to handle missing keys gracefully
 
-    totalamount =amount+40
+        try:
+            cart_item = Cart.objects.get(Q(product=prod_id) & Q(user=request.user))
 
-    data = {
-      'quantity': c.quantity,
-      'amount': amount,
-      'totalamount': totalamount
-    }
-    return JsonResponse(data) 
-    
+            if cart_item.quantity > 1:
+                cart_item.quantity -= 1
+                cart_item.save()
+
+            amount, totalamount = calculate_cart_amount(request.user)
+
+            data = {
+                'quantity': cart_item.quantity,
+                'amount': amount,
+                'totalamount': totalamount
+            }
+            return JsonResponse(data)
+        except Cart.DoesNotExist:
+            return JsonResponse({'error': 'Cart item does not exist'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
 @login_required
 def remove_cart(request):
     if request.method == 'GET':
-        prod_id = request.GET.get('prod_id')
-        cart_item = Cart.objects.filter(Q(product=prod_id) & Q(user=request.user)).first()
-        if cart_item:
-            cart_item.delete()
+        prod_id = request.GET['prod_id']
+        cart_item = Cart.objects.filter(Q(product=prod_id) & Q(user=request.user))
+        cart_item.delete()
 
-        user = request.user
-        cart = Cart.objects.filter(user=user)
-        amount = sum(item.quantity * item.product.discounted_price for item in cart)
-        total_amount = amount + 40
-
-        data = {
-            'amount': amount,
-            'totalamount': total_amount
-        }
-
-        return JsonResponse(data)
-def add_to_wishlist(request, product_id):
-    product = get_object_or_404(Product, id=product_id)
-    wishlist_item, created = Wishlist.objects.get_or_create(user=request.user, product=product)
-    return HttpResponse('{"success": true}', content_type='application/json')
-
-def remove_from_wishlist(request, product_id):
-    product = get_object_or_404(Product, id=product_id)
-    Wishlist.objects.filter(user=request.user, product=product).delete()
-    return HttpResponse('{"success": true}', content_type='application/json')
-
-@login_required
-def add_to_cart_from_wishlist(request, item_id):
-    wishlist_item = Wishlist.objects.get(id=item_id)
-    product = wishlist_item.product
-    Cart(user=request.user, product=product).save()
-    wishlist_item.delete()
-    return redirect('cart')
+        return JsonResponse({'success': True})
 
 @login_required
 def search(request):

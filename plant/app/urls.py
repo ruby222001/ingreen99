@@ -18,17 +18,11 @@ urlpatterns = [
 
     path('address/',views.address,name='address'),
     path('add-to-cart/',views.add_to_cart,name='add-to-cart'),
+    path('pluscart', views.plus_cart),
+     path('showcart/minuscart/', views.minus_cart, name='minus-cart'),
+    path('showcart/removecart/', views.remove_cart, name='remove-cart'),
+  path('cart/', views.show_cart, name='cart'),
     path('showcart/',views.show_cart,name='showcart'),
-
-    path('pluscart/', views.plus_cart),
-    path('minuscart/', views.minus_cart),
-path('removecart/', views.remove_cart, name='remove-cart'),
-    path('cart/', views.show_cart, name='cart'),
-    path('add-to-cart-from-wishlist/<int:item_id>/', views.add_to_cart_from_wishlist, name='add-to-cart-from-wishlist'),
- path('wishlist/', views.Wishlist, name='wishlist'),
-path('add_to_wishlist/<int:product_id>/', views.add_to_wishlist, name='add_to_wishlist'),
-    path('remove_from_wishlist/<int:product_id>/', views.remove_from_wishlist, name='remove_from_wishlist'),
-
     path('search/',views.search,name='search'),
     path('orders/',views.home,name='orders'),
 path('updateaddress/<int:pk>',views.updateAddress.as_view(),name='updateaddress'),
