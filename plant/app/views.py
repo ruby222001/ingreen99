@@ -32,6 +32,10 @@ def about(request):
                totalitem =len(Cart.objects.filter(user=request.user))
                wishitem =len(Wishlist.objects.filter(user=request.user))
      return render(request,"about.html")
+
+def payment(request):
+    return render(request,"verify_payment.html")
+
 @login_required
 def contact(request):
      totalitem =0 
@@ -92,16 +96,14 @@ class ProductDetail(View):
         }
 
         return render(request, "productdetail.html", context)
-@method_decorator(login_required,name='dispatch')
+
 class CustomerRegistrationview(View):
      def get(self,request):
           form =CustomerRegistrationForm()
-          wishitem =0
-          totalitem =0 
+          totalitem =0
           if request.user.is_authenticated:
                totalitem =len(Cart.objects.filter(user=request.user))
-               wishitem =len(Wishlist.objects.filter(user=request.user))
-          return render(request,'customerregistration.html',locals())
+          return render(request,'profile.html',locals())
      def post(self,request):
           form =CustomerRegistrationForm(request.POST)
           if form.is_valid():
@@ -110,7 +112,6 @@ class CustomerRegistrationview(View):
           else:
                messages.warning(request,"invalid input data")
           return render(request,'customerregistration.html',locals())
-     
 @method_decorator(login_required,name='dispatch')
 class ProfileView(View):
      def get(self,request):
@@ -215,8 +216,6 @@ class CheckoutView(View):
                 famount += value
             totalamount = famount + 40
             return render(request, 'checkout.html', locals())
-
-    
 @login_required
 def plus_cart(request):
     if request.method == 'GET':
@@ -237,8 +236,6 @@ def plus_cart(request):
         }
 
         return JsonResponse(data)
-
-
 
 @login_required
 def minus_cart(request):
@@ -300,17 +297,15 @@ def add_to_cart_from_wishlist(request, item_id):
     wishlist_item.delete()
     return redirect('cart')
 
-
 @login_required
 def search(request):
     query = request.GET.get('search')
-    wishitem = 0
     totalitem = 0
     if request.user.is_authenticated:
         totalitem = len(Cart.objects.filter(user=request.user))
-        wishitem = len(Wishlist.objects.filter(user=request.user))
     product = Product.objects.filter(title__icontains=query)
-    return render(request, "search.html", {'product': product, 'wishitem': wishitem, 'totalitem': totalitem})
+    return render(request, "search.html", {'product': product, 'totalitem': totalitem})
+
 
 
 @login_required
@@ -354,6 +349,13 @@ def verify_payment(request):
     except Exception as e:
         print(f"Exception: {e}") 
         return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
+    
+
+
+
+
+
+
 def submit_review(request, product_id):
     url = request.META.get('HTTP_REFERER')
     if request.method == 'POST':
@@ -369,6 +371,5 @@ def submit_review(request, product_id):
             data.product_id = product_id
             data.ip = request.META.get('REMOTE_ADDR')  # Fix the typo here
             data.save()
-            messages.success(request, 'Thank you for your review')
             return redirect(url)
 

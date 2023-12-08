@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User,AbstractUser
 from django.db import models
 
 
@@ -35,8 +35,11 @@ class Customer(models.Model):
     name =models.CharField(max_length =200)
     address =models.CharField(max_length=50)
     mobile =models.IntegerField(default=0)
+
     def __str__(self):
       return self.name
+    
+    
 STATUS_CHOICES=(
     ('Accepted','Accepted'),
     ('Packed','Packed'),
@@ -88,3 +91,7 @@ class Wishlist(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s Wishlist"
+
+
+def __str__(self):
+        return self.GuestFullName

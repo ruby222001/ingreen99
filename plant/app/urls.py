@@ -29,19 +29,18 @@ path('removecart/', views.remove_cart, name='remove-cart'),
 path('add_to_wishlist/<int:product_id>/', views.add_to_wishlist, name='add_to_wishlist'),
     path('remove_from_wishlist/<int:product_id>/', views.remove_from_wishlist, name='remove_from_wishlist'),
 
-path('checkout/', views.CheckoutView.as_view(), name='checkout'),
     path('search/',views.search,name='search'),
     path('orders/',views.home,name='orders'),
 path('updateaddress/<int:pk>',views.updateAddress.as_view(),name='updateaddress'),
     path('registration/',views.CustomerRegistrationview.as_view(),name='customerregistration'),
     path('accounts/login/',auth_view.LoginView.as_view(template_name='login.html',authentication_form = LoginForm),name='login'),
-    path('passwordchange/',auth_view.PasswordChangeView.as_view(template_name='changepassword.html',form_class=MyPasswordResetForm,success_url='/passwordchangedone'),name='passwordchange'),
-    path('password-reset/',auth_view.PasswordResetView.as_view(template_name='password_reset.html',form_class =MyPasswordResetForm),name='password_reset'),
-   path('passwordchangedone/' ,auth_view.PasswordChangeDoneView.as_view(template_name='app/passwordchangedone.html'),name='passwordchangedone'),
-    path('logout/',auth_view.LogoutView.as_view(next_page='login'),name='logout'),
-
+      path('logout/',auth_view.LogoutView.as_view(),name='logout'),
 path('submit_review/<int:product_id>/', views.submit_review, name='submit_review'),
+path('checkout/', views.CheckoutView.as_view(), name='checkout'),
  path('verify_payment/',views.verify_payment,name='verify_payment'),
+ path('payment/',views.payment,name='payment'),
+
+
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 admin.site.site_header="ingreen"
 admin.site.site_title="ingreen"

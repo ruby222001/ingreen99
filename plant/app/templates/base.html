@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 {% load static %}
 <html lang="en">
 
@@ -36,7 +36,7 @@
 <body class="black-bg" style=" background-color:azure;" >
   
 
-  <nav class="navbar navbar-dark bg-success fixed-top navbar-expand-lg  mx-auto" style="width: 85%" >
+  <nav class="navbar navbar-dark bg-success  navbar-expand-lg  mx-auto" style="width: 100%" >
     <div class="container" style="padding-right: 50px; padding-left: 50px">
     <a class="navbar-brand" href="/">
       <!-- <img src="{% static 'logo.png' %}" height=20px width="20px" alt="Logo"> -->
@@ -53,10 +53,8 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0 ">
         
-       {% if request.user.is_authenticated %} 
-        <li class="nav-item">
-          <a class="nav-link active" href="/">Home <span class="sr-only">(current)</span></a>
-        </li>
+        
+
         <li class="nav-item dropdown mx-2">
           <a class="nav-link dropdown-toggle text-white" href="#" id="profileDropdown" role="button"
             data-bs-toggle="dropdown" aria-expanded="false">Products</a>
@@ -80,31 +78,28 @@
         </li>
 
       </ul>
-      <form class="d-flex" role ="search" action="search">
-        <input class="form-control me-2"name="search" type="search" placeholder="Search" aria-label="Search">
+      <form class="d-flex" role="search" action="{% url 'search' %}" method="GET">
+        <input class="form-control me-2" name="search" type="search" placeholder="search" aria-label="search">
         <button class="btn btn-outline-dark " type="submit">Search</button>
       </form>
     </div>
     <ul class="navbar-nav mb-2 mb-lg-0">
       <li class="nav-item dropdown mx-2">
         <a class="nav-link dropdown-toggle text-white" href="#" id="profileDropdown" role="button"
-          data-bs-toggle="dropdown" aria-expanded="false">{{ user.username}}</a>
+          data-bs-toggle="dropdown" aria-expanded="false">{{request.user}}</a>
         <ul class="dropdown-menu" aria-labelledby="profileDropdown">
           <li><a href="{% url 'profile' %}" class="dropdown-item">Profile</a></li>
-          <li><a href="{% url 'orders' %}" class="dropdown-item">Orders</a></li>
-          <li><a href="{% url 'passwordchange' %}" class="dropdown-item">Change Password</a></li>
           <li><a href="{% url 'logout' %}" class="dropdown-item">Logout</a></li>
 
         </ul>
 
       </li>
       <li class="nav-item mx-2">
-        <a href="{% url 'showcart' %}" class="nav-link text-white"><span class="badge bg-danger">{% if totalitem  %}{{totalitem}}{% endif %}</span>Cart </a>
+        <a href="{% url 'showcart' %}" class="nav-link text-white">Cart </a>
       </li>
       <li class="nav-item mx-2">
         <a href="{% url 'wishlist' %}" class="nav-link text-white">wishlist</a>
       </li>
-      {% else %} 
       <li class="nav-item mx-2">
         <a href="{% url 'login' %}" class="nav-link text-white">Login</a>
       </li>
@@ -112,7 +107,6 @@
       <li class="nav-item mx-2">
         <a href="{% url 'customerregistration' %}" class="nav-link text-white">Register</a>
       </li>
-      {% endif %}
     </ul>
   </div>
   </nav>
@@ -124,7 +118,11 @@
   {% block payment-gateway %}{% endblock payment-gateway %}
 
   
-  <footer class="container  fixed-bottom bg-success text-center p-2 mt-5" style="width:85%;" >
+  <footer class="container text-center p-2 mt-5"style="     
+
+      color: white;
+      padding: 10px;
+      text-align: center;">
     Copyright : 2023 || Develop by :Rubi Maharjan
   </footer>
 

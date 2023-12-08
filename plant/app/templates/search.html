@@ -7,24 +7,35 @@
 {% block main-content %}
 <div class="container my-5">
     <div class="row">
-        <div class="col-sm-8">
+        {% for prod in product %}
+        <div class="col-lg-5 my-5">
+            <!-- Left side with image -->
             <div class="row">
-                {% for prod in product %}
-                <div class="col-sm-4 text-center mb-4 hover-shadow">
+                <div class="col-md-12">
                     <a href="{% url 'product-detail' prod.id %}" class="btn">
-                        <div>
-                            <img src="{{ prod.product_image.url }}" width="300px" height="200px" alt="">
-                            <div class="fw-bold">{{ prod.title }}</div>
-                            <div class="fw-bold text-danger">
-                                Rs.{{ prod.discounted_price }}/-
-                                <small class="fw-light text-decoration-line-through">{{ prod.selling_price }}</small>
-                            </div>
-                        </div>
+                        <img src="{{ prod.product_image.url }}" class="img-fluid" width="300px" height="300px" alt="{{ prod.title }}">
                     </a>
+
                 </div>
-                {% endfor %}
             </div>
         </div>
+            <!-- Right side with product details -->
+            <div class="col-lg-5 mt-5">
+                <h1 class="my-4" style="font-family: Georgia; font-size: 40px;">{{ prod.title }}</h1>
+                <h5>Rs.{{ prod.discounted_price }}/-</h5>
+                <small class="text-muted fs-5" style="text-decoration: line-through;">Rs.{{ prod.selling_price }}</small>
+                <br><br>
+                <h4>Product Features</h4>
+                <ul class="fs-5" style="font-family: Rajdhani;">
+                    <li>{{ prod.description }}</li>
+                </ul>
+                <form action="{% url 'add-to-cart' %}" class="d-inline">
+                    <input type="hidden" name="prod_id" value="{{ prod.id }}">
+                    <button class="btn btn-primary shadow px-5 py-2" type="submit">Add to Cart</button>
+                </form>
+                <a href="{% url 'checkout' %}" class="btn btn-warning shadow px-5 py-2">Buy Now</a>
+            </div>
+        {% endfor %}
     </div>
 </div>
 {% endblock main-content %}

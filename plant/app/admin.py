@@ -13,12 +13,7 @@ class CustomerModelAdmin(admin.ModelAdmin):
 @admin.register(Cart)
 class CartModelAdmin(admin.ModelAdmin):
     list_display =['id','user','product','quantity']
-@admin.register(Payment)
-class PaymentModelAdmin(admin.ModelAdmin):
-    list_display =['id','user','amount']
-@admin.register(OrderPlaced)
-class OrderPlacedAdmin(admin.ModelAdmin):
-    list_display=['id','user','customer','product','quantity','ordered_data','status','payment']
+
 class WishlistAdmin(admin.ModelAdmin):
     list_display = ['id', 'user', 'product']  
 

@@ -8,7 +8,7 @@
         <div class="col-sm-6 offset-sm-3">
             <h3>Customer Registration</h3>
             <hr>
-            <form action="" method ="post" novalidate class="shadow p-5">
+            <form action="{% url 'customerregistration' %}" method ="post" >
                 {% csrf_token %}
                 {% for fm in form %}
                 {{fm.label_tag}}{{fm}} <small class="text-danger">{{fm.errors|striptags}}</small><br>

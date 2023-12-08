@@ -15,7 +15,7 @@
   
   .box
   {
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Adjust the shadow values as needed */
     width: 250px;
   }
   body {
@@ -83,7 +83,12 @@
   
  
 
-
+body{
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  
+}
 
 
 .rate > input{
@@ -116,8 +121,24 @@
 input:checked ~ label, label:hover ~ label{
   color: #ffb503;
 }
-
-input:checked + label:hover, input:checked ~ label:hover,input:checked ~ label:hover ~label,
+/* hover hightlight */
+input:checked + label:hover, input:checked ~ label:hover,input:checked ~ label:hover ~ label,
 label:hover ~ input:checked ~ label{
   color: #cc9000;
+}
+
+.rating-star i{
+  color: #ffb503 !important;
+}
+
+/* Additional styles for demonstration purposes */
+.box {
+  width:80%;
+  padding: 2px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column; /* Adjust this based on your layout */
+  justify-content: flex-start;
+  align-items: flex-start;
+  
 }
